@@ -1,6 +1,6 @@
 {
     "name": "makhmudovazeez/payme-laravel",
-    "description": "Payme-Laravel - Laravel package for integration with \"payme\" payment system",
+    "description": "Payme-Laravel - Laravel package for integration with `payme` payment system",
     "type": "library",
     "license": "MIT",
     "autoload": {
