@@ -1,0 +1,31 @@
+{
+    "name": "makhmudovazeez/payme-laravel",
+    "description": "Payme-Laravel - Laravel package for integration with \"payme\" payment system",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Makhmudovazeez\\Paymelaravel\\": "src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Makhmudovazeez\\Paymelaravel"
+            ]
+        }
+    },
+    "homepage": "https://github.com/makhmudovazeez/payme-laravel",
+    "authors": [
+        {
+            "name": "makhmudovazeez",
+            "email": "azeezmakhmudov@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {},
+    "classmap": [
+        "database/migrations"
+    ]
+}
