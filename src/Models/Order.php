@@ -102,4 +102,10 @@ class Order extends Model
         return true;
     }
 
+    public function allowCancel(): bool
+    {
+        // TODO:list
+        return false;
+    }
+
 }
