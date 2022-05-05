@@ -2,17 +2,14 @@
 
 namespace Makhmudovazeez\Paymelaravel\Services;
 
-use Illuminate\Http\Request;
 use Makhmudovazeez\Paymelaravel\Exceptions\PaymeException;
 use Makhmudovazeez\Paymelaravel\Models\Order;
 use Makhmudovazeez\Paymelaravel\Models\Transaction;
-use Makhmudovazeez\Paymelaravel\Traits\Format;
 
 class Payme 
 {
-    use Format;
     
-    public static function run(Request $request){
+    public static function run(){
         
         try {
 
@@ -87,9 +84,9 @@ class Payme
 
         // todo: Prepare and send found transaction
         Response::send([
-            'create_time'  => self::datetime2timestamp($transaction->create_time),
-            'perform_time' => self::datetime2timestamp($transaction->perform_time),
-            'cancel_time'  => self::datetime2timestamp($transaction->cancel_time),
+            'create_time'  => Format::datetime2timestamp($transaction->create_time),
+            'perform_time' => Format::datetime2timestamp($transaction->perform_time),
+            'cancel_time'  => Format::datetime2timestamp($transaction->cancel_time),
             'transaction'  => $transaction->id,
             'state'        => $transaction->state,
             'reason'       => isset($transaction->reason) ? 1 * $transaction->reason : null,
@@ -135,7 +132,7 @@ class Payme
                 );
             } else { // if transaction found and active, send it as response
                 Response::send([
-                    'create_time' => self::datetime2timestamp($transaction->create_time),
+                    'create_time' => Format::datetime2timestamp($transaction->create_time),
                     'transaction' => $transaction->id,
                     'state'       => $transaction->state,
                     'receivers'   => $transaction->receivers,
@@ -200,12 +197,12 @@ class Payme
                 } else { // perform active transaction
                     // todo: Mark order/service as completed
                     $params = ['order_id' => $transaction->order_id];
-                    $order  = new Order($this->request->id);
-                    $order->find($params);
+                    $order  = Order::find(request('order_id'));
+
                     $order->changeState(Order::STATE_PAY_ACCEPTED);
 
                     // todo: Mark transaction as completed
-                    $perform_time        = Format::timestamp(true);
+                    $perform_time              = Format::timestamp(true);
                     $transaction->state        = Transaction::STATE_COMPLETED;
                     $transaction->perform_time = Format::timestamp2datetime($perform_time);
                     $transaction->save();
@@ -222,7 +219,7 @@ class Payme
                 // todo: If transaction completed, just return it
                 Response::send([
                     'transaction'  => $transaction->id,
-                    'perform_time' => self::datetime2timestamp($transaction->perform_time),
+                    'perform_time' => Format::datetime2timestamp($transaction->perform_time),
                     'state'        => $transaction->state,
                 ]);
                 break;
@@ -253,7 +250,7 @@ class Payme
             case Transaction::STATE_CANCELLED_AFTER_COMPLETE:
                 Response::send([
                     'transaction' => $transaction->id,
-                    'cancel_time' => self::datetime2timestamp($transaction->cancel_time),
+                    'cancel_time' => Format::datetime2timestamp($transaction->cancel_time),
                     'state'       => $transaction->state,
                 ]);
                 break;
@@ -279,8 +276,8 @@ class Payme
 
             case Transaction::STATE_COMPLETED:
                 // find order and check, whether cancelling is possible this order
-                $order = new Order($this->request->id);
-                $order->find($this->request->params);
+                $order = Order::find(request('order_id'));
+
                 if ($order->allowCancel()) {
                     // cancel and change state to cancelled
                     $transaction->cancel(1 * $this->request->params['reason']);
@@ -331,17 +328,17 @@ class Payme
     private function GetStatement()
     {
         // validate 'from'
-        if (!isset($this->request->params['from'])) {
+        if (request('from')) {
             Response::error(PaymeException::ERROR_INVALID_ACCOUNT, 'Incorrect period.', 'from');
         }
 
         // validate 'to'
-        if (!isset($this->request->params['to'])) {
+        if (request('to')) {
             Response::error(PaymeException::ERROR_INVALID_ACCOUNT, 'Incorrect period.', 'to');
         }
 
         // validate period
-        if (1 * $this->request->params['from'] >= 1 * $this->request->params['to']) {
+        if (1 * request('from') >= 1 * request('to')) {
             Response::error(PaymeException::ERROR_INVALID_ACCOUNT, 'Incorrect period. (from >= to)', 'from');
         }
 
